@@ -28,9 +28,10 @@ const SignupScreen = () => {
         <View className="absolute inset-0 z-10" style={{width: screenWidth, height: screenHeight}}>
           <ScrollView>
             <BlurView className="w-full h-full px-4 py-16 flex-row flex-wrap items-center justify-evenly" tint='light' intensity={40} style={{width: screenWidth, height: screenHeight}}>
+              <Text className="absolute top-2 mt-7 flex-1 items-center justify-start text-center text-xl font-semibold text-primaryBold">Pick an avatar</Text>
               {
                 avatars?.map((item) => (
-                  <TouchableOpacity key={item._id} className="w-20 m-3 h-20 p-1 rounded-full border-2 border-primary relative" onPress={() => handleAvatar(item)}>
+                  <TouchableOpacity key={item._id} className="w-20 m-2 h-20 p-1 rounded-full border-2 border-primary relative" onPress={() => handleAvatar(item)}>
                     <Image source={{uri: item?.image.asset.url}} className="w-full h-full" resizeMode='contain' />
                   </TouchableOpacity>
                 ))
