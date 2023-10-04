@@ -3,12 +3,44 @@ import React, { useState } from 'react';
 import { BGImage, Logo } from '../assets/index';
 import { UserTextInput } from '../components/index';
 import { useNavigation } from '@react-navigation/native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { firebaseAuth, firestoreDB } from '../config/firebase.config';
+import { doc, getDoc } from 'firebase/firestore';
 
 const LoginScreen = () => {
   const screenWidth = Math.round(Dimensions.get("window").width);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [getEmailValidationStatus, setGetEmailValidationStatus] = useState(false);
+  const [alert, setAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState(null);
   const navigation = useNavigation();
+  const handleLogin = async() => {
+    if(getEmailValidationStatus && email !== "") {
+      await signInWithEmailAndPassword(firebaseAuth, email, password).then(userCred => {
+        if(userCred) {
+          console.log("User Id: ", userCred?.user.uid);
+          getDoc(doc(firestoreDB, 'users', userCred?.user.uid)).then(docSnap => {
+            if(docSnap.exists()) {
+              console.log("User Data: ", docSnap.data());
+            }
+          })
+        }
+      }).catch(err => {
+        console.log("Error: ", err.message);
+        if(err.message.includes("invalid-login-credentials")) {
+          setAlert(true);
+          setAlertMessage("Incorrect email id or password");
+        }else if(err.message.includes("user-not-found")) {
+          setAlert(true);
+          setAlertMessage("User not found");
+        }
+        setInterval(() => {
+          setAlert(false);
+        }, 5000);
+      })
+    }
+  }
   return (
     <View className="flex-1 items-center justify-start">
       <Image source={BGImage} resizeMode='cover' className="h-96" style={{width: screenWidth}} />
@@ -18,12 +50,17 @@ const LoginScreen = () => {
         <Text className="py-2 text-primaryText text-xl font-semibold">Welcome</Text>
         <View className="w-full flex items-center justify-center">
           {/** alert message */}
+          {
+            alert && (
+              <Text className="text-base text-red-600">{alertMessage}</Text>
+            )
+          }
           {/** email filed */}
-          <UserTextInput placeholder="Email" isPass={false} setStateValue={setEmail} />
+          <UserTextInput placeholder="Email" isPass={false} setStateValue={setEmail} setGetEmailValidationStatus={setGetEmailValidationStatus} />
           {/** password field */}
           <UserTextInput placeholder="Password" isPass={true} setStateValue={setPassword} />
           {/** login button */}
-          <TouchableOpacity className="w-full px-4 py-2 rounded-xl bg-primary my-3 flex items-center justify-center">
+          <TouchableOpacity onPress={handleLogin} className="w-full px-4 py-2 rounded-xl bg-primary my-3 flex items-center justify-center">
             <Text className="py-2 text-white text-xl font-semibold">Sign in</Text>
           </TouchableOpacity>
           <View className="w-full py-12 flex-row items-center justify-center space-x-2">

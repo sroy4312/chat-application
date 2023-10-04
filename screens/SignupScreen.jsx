@@ -6,6 +6,9 @@ import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import { avatars } from '../utils/supports';
 import { MaterialIcons } from '@expo/vector-icons';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { firebaseAuth, firestoreDB } from '../config/firebase.config';
+import { doc, setDoc } from 'firebase/firestore';
 
 const SignupScreen = () => {
   const screenWidth = Math.round(Dimensions.get("window").width);
@@ -15,10 +18,26 @@ const SignupScreen = () => {
   const [password, setPassword] = useState("");
   const [avatar, setAvatar] = useState(avatars[0]?.image.asset.url);
   const [isAvatarMenu, setIsAvatarMenu] = useState(false);
+  const [getEmailValidationStatus, setGetEmailValidationStatus] = useState(false);
   const navigation = useNavigation();
   const handleAvatar = (item) => {
     setAvatar(item?.image.asset.url);
     setIsAvatarMenu(false);
+  }
+  const handleSignUp = async() => {
+    if(getEmailValidationStatus && email !== "") {
+      await createUserWithEmailAndPassword(firebaseAuth, email, password).then(userCred => {
+        const data = {
+          _id: userCred?.user.uid,
+          fullName: name,
+          profilePic: avatar,
+          providerData: userCred.user.providerData[0]
+        }
+        setDoc(doc(firestoreDB, 'users', userCred?.user.uid), data).then(() => {
+          navigation.navigate("LoginScreen")
+        })
+      })
+    }
   }
   return (
     <View className="flex-1 items-center justify-start">
@@ -50,7 +69,7 @@ const SignupScreen = () => {
           <View className="w-full flex items-center justify-center relative">
               <TouchableOpacity className="w-20 h-20 p-1 rounded-full border-2 border-primary relative" onPress={() => setIsAvatarMenu(true)}>
                 <Image source={{uri: avatar}} className="w-full h-full" resizeMode='contain' />
-                <View className="w-6 h-6 bg-primary rounded-full absolute top-0 right-0 flex-items-center justify-center">
+                <View className="w-6 h-6 bg-primary rounded-full absolute top-0 right-0 flex items-center justify-center">
                   <MaterialIcons name="edit" size={18} color={"#fff"} />
                 </View>
               </TouchableOpacity>
@@ -58,11 +77,11 @@ const SignupScreen = () => {
           {/** name field */}
           <UserTextInput placeholder="Full Name" isPass={false} setStateValue={setName} />
           {/** email filed */}
-          <UserTextInput placeholder="Email" isPass={false} setStateValue={setEmail} />
+          <UserTextInput placeholder="Email" isPass={false} setStateValue={setEmail} setGetEmailValidationStatus={setGetEmailValidationStatus} />
           {/** password field */}
           <UserTextInput placeholder="Password" isPass={true} setStateValue={setPassword} />
-          {/** login button */}
-          <TouchableOpacity className="w-full px-4 py-2 rounded-xl bg-primary my-3 flex items-center justify-center">
+          {/** signup button */}
+          <TouchableOpacity onPress={handleSignUp} className="w-full px-4 py-2 rounded-xl bg-primary my-3 flex items-center justify-center">
             <Text className="py-2 text-white text-xl font-semibold">Sign in</Text>
           </TouchableOpacity>
           <View className="w-full py-12 flex-row items-center justify-center space-x-2">
