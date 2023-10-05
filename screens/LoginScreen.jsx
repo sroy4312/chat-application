@@ -6,6 +6,8 @@ import { useNavigation } from '@react-navigation/native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { firebaseAuth, firestoreDB } from '../config/firebase.config';
 import { doc, getDoc } from 'firebase/firestore';
+import { useDispatch } from 'react-redux';
+import { SET_USER } from '../context/actions/userActions';
 
 const LoginScreen = () => {
   const screenWidth = Math.round(Dimensions.get("window").width);
@@ -15,6 +17,7 @@ const LoginScreen = () => {
   const [alert, setAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState(null);
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const handleLogin = async() => {
     if(getEmailValidationStatus && email !== "") {
       await signInWithEmailAndPassword(firebaseAuth, email, password).then(userCred => {
@@ -23,6 +26,7 @@ const LoginScreen = () => {
           getDoc(doc(firestoreDB, 'users', userCred?.user.uid)).then(docSnap => {
             if(docSnap.exists()) {
               console.log("User Data: ", docSnap.data());
+              dispatch(SET_USER(docSnap.data()));
             }
           })
         }
