@@ -3,7 +3,7 @@ import { Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider } from 'react-redux';
-import { LoginScreen, SignupScreen, SplashScreen, HomeScreen, AddToChatScreen, ChatScreen } from './screens/index';
+import { LoginScreen, SignupScreen, SplashScreen, HomeScreen, AddToChatScreen, ChatScreen, ProfilesScreen } from './screens/index';
 import Store from './context/store';
 
 const Stack = createNativeStackNavigator();
@@ -19,6 +19,7 @@ export default function App() {
           <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="AddToChatScreen" component={AddToChatScreen} />
           <Stack.Screen name="ChatScreen" component={ChatScreen} />
+          <Stack.Screen name="ProfilesScreen" component={ProfilesScreen} />
         </Stack.Navigator>
       </Provider>
     </NavigationContainer>
